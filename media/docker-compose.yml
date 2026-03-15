@@ -7,7 +7,7 @@ services:
     volumes:
       - ./data/config/jellyfin:/config:Z
       - ./data/cache/jellyfin:/cache:Z
-      - /mnt/mediastorage/plex/data/media:/media:Z # Adjust based on your actual library path
+      - ${BASE_MEDIA_DIR}/media:/media:Z # Adjust based on your actual library path
     ports:
       - 8096:8096
     restart: unless-stopped
@@ -34,8 +34,8 @@ services:
       - TZ=Etc/UTC
     volumes:
       - ./data/config/sonarr:/config:Z
-      - /mnt/mediastorage/plex/data/media:/media:Z # Root path for downloads and media
-      - /mnt/mediastorage/plex/data/downloads:/downloads:Z
+      - ${BASE_MEDIA_DIR}/media:/media:Z # Root path for downloads and media
+      - ${BASE_MEDIA_DIR}/downloads:/downloads:Z
 
     ports:
       - 8989:8989
@@ -50,8 +50,8 @@ services:
       - TZ=Etc/UTC
     volumes:
       - ./data/config/radarr:/config:Z
-      - /mnt/mediastorage/plex/data/media:/media:Z
-      - /mnt/mediastorage/plex/data/downloads:/downloads:Z
+      - ${BASE_MEDIA_DIR}/media:/media:Z
+      - ${BASE_MEDIA_DIR}/downloads:/downloads:Z
     ports:
       - 7878:7878
     restart: unless-stopped
@@ -93,12 +93,12 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - RPC_SECRET=d62222efd82d4a718ce6ab79e479c709 # Use openssl rand -hex 32
+      - RPC_SECRET=${ARIA2_RPC_SECRET} # Use openssl rand -hex 32
       - RPC_PORT=6800
       - LISTEN_PORT=6888
     volumes:
       - ./data/config/aria2:/config:Z
-      - /mnt/mediastorage/plex/data/downloads:/downloads:Z
+      - ${BASE_MEDIA_DIR}/downloads:/downloads:Z
     ports:
       - 6800:6800
       - 6888:6888
