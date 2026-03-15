@@ -1,0 +1,114 @@
+services:
+  # --- Media Server & Requests ---
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    user: 1000:1000
+    volumes:
+      - ./data/config/jellyfin:/config:Z
+      - ./data/cache/jellyfin:/cache:Z
+      - /mnt/mediastorage/plex/data/media:/media:Z # Adjust based on your actual library path
+    ports:
+      - 8096:8096
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Etc/UTC
+    volumes:
+      - ./data/config/jellyseerr:/app/config:Z
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+
+  # --- Automation (The "Arrs") ---
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./data/config/sonarr:/config:Z
+      - /mnt/mediastorage/plex/data/media:/media:Z # Root path for downloads and media
+      - /mnt/mediastorage/plex/data/downloads:/downloads:Z
+
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./data/config/radarr:/config:Z
+      - /mnt/mediastorage/plex/data/media:/media:Z
+      - /mnt/mediastorage/plex/data/downloads:/downloads:Z
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./data/config/prowlarr:/config:Z
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  # --- Helpers & Indexing ---
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+
+  buildarr:
+    image: callum027/buildarr:latest
+    container_name: buildarr
+    volumes:
+      - ./data/config/buildarr:/config:Z
+    restart: unless-stopped
+
+  # --- Download Engine ---
+  aria2-pro:
+    image: p3terx/aria2-pro
+    container_name: aria2-pro
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - RPC_SECRET=d62222efd82d4a718ce6ab79e479c709 # Use openssl rand -hex 32
+      - RPC_PORT=6800
+      - LISTEN_PORT=6888
+    volumes:
+      - ./data/config/aria2:/config:Z
+      - /mnt/mediastorage/plex/data/downloads:/downloads:Z
+    ports:
+      - 6800:6800
+      - 6888:6888
+      - 6888:6888/udp
+    restart: unless-stopped
+
+  ariang:
+    image: p3terx/ariang
+    container_name: ariang
+    ports:
+      - 6880:6880
+    command: --port 6880
+    restart: unless-stopped
